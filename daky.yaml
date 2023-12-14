@@ -1,0 +1,163 @@
+cidl: "0.8"
+info:
+  name: nft
+  title: Daky NFT
+  version: 0.0.1
+  license:
+    name: Unlicense
+    identifier: Unlicense
+types:
+  Daky:
+    solana:
+      seeds:
+        - name: "daky"
+        - name: mint
+          type: sol:pubkey 
+        - name: plan_id
+          type: string
+    fields:
+      - name: plan_id
+        type: string
+        solana:
+          attributes: [ cap:16 ]
+      - name: name
+        type: string
+        solana:
+          attributes: [ cap:16 ]
+      - name: short_description
+        type: string
+        solana:
+          attributes: [ cap:255 ]
+      - name: price
+        type: u64
+      - name: mint
+        type: sol:pubkey
+  Subscription:
+    solana:
+      seeds:
+        - name: "daky"
+        - name: mint
+          type: sol:pubkey
+        - name: plan_id
+          type: string
+        - name: assoc_account
+          type: sol:pubkey
+    fields:
+      - name: plan_id
+        type: string
+        solana:
+          attributes: [ cap:16 ]
+      - name: name
+        type: string
+        solana:
+          attributes: [ cap:16 ]
+      - name: expiry
+        type: u64
+      - name: mint
+        type: sol:pubkey
+      
+methods:
+  - name: addPlan
+    inputs:
+      - name: mint
+        type: csl_spl_token.Mint
+      - name: daky
+        type: Daky
+        solana:
+          attributes: [ init ]
+          seeds:
+            mint: mint
+            plan_id: plan_id
+      - name: plan_id
+        type: string
+      - name: name
+        type: string
+      - name: short_description
+        type: string
+      - name: price
+        type: u64
+  - name: mint
+    uses:
+      - csl_spl_token.initialize_mint2
+      - csl_spl_assoc_token.create
+      - csl_spl_token.mint_to
+      - csl_spl_token.set_authority
+    inputs:
+      - name: mint
+        type: csl_spl_token.Mint
+        solana:
+          attributes: [ init ]
+      - name: plan_id
+        type: string
+      - name: assoc_account
+        type: sol:pubkey
+      - name: daky
+        type: Daky
+        solana:
+          attributes: [ mut ]
+          seeds:
+            mint: mint
+            plan_id: plan_id
+      - name: subscription
+        type: Subscription
+        solana:
+          attributes: [ mut ]
+          seeds:
+            mint: mint
+            plan_id: plan_id
+            assoc_account: assoc_account
+  - name: transfer
+    uses:
+      - csl_spl_assoc_token.create
+      - csl_spl_token.transfer_checked
+    inputs:
+      - name: mint
+        type: csl_spl_token.Mint
+      - name: plan_id
+        type: string
+      - name: assoc_account
+        type: sol:pubkey
+      - name: subscription
+        type: Subscription
+        solana:
+          attributes: [ mut ]
+          seeds:
+            mint: mint
+            plan_id: plan_id
+            assoc_account: assoc_account
+  - name: burn
+    uses:
+      - csl_spl_token.burn
+    inputs:
+      - name: mint
+        type: csl_spl_token.Mint
+      - name: plan_id
+        type: string
+      - name: assoc_account
+        type: sol:pubkey
+      - name: subscription
+        type: Subscription
+        solana:
+          attributes: [ mut ]
+          seeds:
+            mint: mint
+            plan_id: plan_id
+            assoc_account: assoc_account
+  - name: extend_expiry
+    inputs:
+      - name: mint
+        type: csl_spl_token.Mint
+      - name: plan_id
+        type: string
+      - name: assoc_account
+        type: sol:pubkey
+      - name: subscription
+        type: Subscription
+        solana:
+          attributes: [ mut ]
+          seeds:
+            mint: mint
+            plan_id: plan_id
+            assoc_account: assoc_account
+      - name: new_expiry
+        type: u64
